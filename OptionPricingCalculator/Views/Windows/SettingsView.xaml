@@ -1,0 +1,54 @@
+﻿<mah:MetroWindow x:Class="OptionPricingCalculator.Views.Windows.SettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OptionPricingCalculator.Views.Windows"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        mc:Ignorable="d"
+        Title="Настройки" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+        <GroupBox Grid.Row="0" Grid.ColumnSpan="2" Header="Настройки проекта" FontSize="16" >
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <Label Content="Количество итераций:" Style="{StaticResource LabelOptionPropertyStyle}"/>
+
+                    <Label Content="Временная сетка:" Style="{StaticResource LabelOptionPropertyStyle}"/>
+
+                    <!--<Label Content="Алгоритм решения:" Style="{StaticResource LabelOptionPropertyStyle}"/>-->
+
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <mah:NumericUpDown Value="{Binding NumOfSimulations}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" StringFormat="D" />
+
+                    <mah:NumericUpDown Value="{Binding GridOfTime}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" StringFormat="D" />
+
+                    <!--<ComboBox ItemsSource="{Binding MonteCarloAlgorithms}" SelectedItem="{Binding SelectedAlgorithm}"  Style="{StaticResource ComboBoxOptionPropertyPrice}" />-->
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+        <GroupBox Grid.Row="1" Grid.ColumnSpan="2" Header="Выводимые значения" FontSize="16">
+            <StackPanel>
+                <CheckBox Content="Delta" IsEnabled="{Binding IsDeltaEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Gamma" IsEnabled="{Binding IsGammaEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Vega" IsEnabled="{Binding IsVegaEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Rho" IsEnabled="{Binding IsRhoEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Theta" IsEnabled="{Binding IsThetaEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+            </StackPanel>
+        </GroupBox>
+<!--<Button Grid.Row="2" Margin="3" Command="{Binding ExitSettings}" Grid.Column="1" Content="Закрыть настройки" FontSize="16"/>-->
+    </Grid>
+</mah:MetroWindow>
