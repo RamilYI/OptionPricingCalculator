@@ -24,7 +24,7 @@ namespace OptionPricingCalculator.ViewModels.Interfaces
 
         ICommand CreateProjectCommand { get; }
 
-        ICommand Calculate { get; }
+        ICommand CalculateCommand { get; }
 
         string OptionType { get; set; }
 

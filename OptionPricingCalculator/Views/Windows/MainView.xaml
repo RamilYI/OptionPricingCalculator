@@ -34,7 +34,7 @@
                         <MenuItem Header="Открыть проект" Command="{Binding OpenProjectCommand}"/>
                     </MenuItem>
                     <MenuItem Header="Сохранить проект" Command="{Binding SaveProjectCommand}"/>
-                    <MenuItem Header="Сгенерировать отчёт" Command="{Binding GenerateReportCommand}"/>
+                    <MenuItem Header="Экспорт результатов в Excel" Command="{Binding GenerateReportCommand}"/>
                     <Separator/>
                     <MenuItem Header="Выход" Command="{Binding ExitCommand}" ></MenuItem>
                 </MenuItem>
@@ -103,7 +103,7 @@
                     </Grid>
                 </GroupBox>
 
-                <Button Grid.Row="1" Grid.Column="0" Content="Рассчитать" Background="Gray" BorderBrush="Gray" Margin="5" Command="{Binding Calculate}"/>
+                <Button Grid.Row="1" Grid.Column="0" Content="Рассчитать" Background="Gray" BorderBrush="Gray" Margin="5" Command="{Binding CalculateCommand}"/>
                 
                 <GroupBox Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Header="Результаты" FontSize="16" >
                     <Grid>
@@ -117,8 +117,8 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <!--Controls:TextBoxHelper.Watermark-->
-                            <TextBox IsReadOnly="True" Style="{StaticResource TextBoxOptionPropertyStyle}" />
-                            <TextBox IsReadOnly="True" Style="{StaticResource TextBoxOptionPropertyStyle}" />
+                            <TextBlock Text="{Binding CalculationDuration}" FontSize="16" Margin="10"/>
+                            <TextBlock Text="{Binding Status}" Margin="10" FontSize="16"/>
                         </StackPanel>
                     </Grid>
                     
@@ -132,7 +132,7 @@
 
                 <Grid Grid.Row="0">
 
-                    <DataGrid AutoGenerateColumns="True" ItemsSource="{Binding OptionPricingCalculationResults}" Style="{StaticResource MetroDataGrid}" CanUserAddRows="False" IsReadOnly="True" BorderBrush="Black" Background="WhiteSmoke" ColumnWidth="Auto" CanUserDeleteRows="False" FontSize="14" />
+                    <DataGrid AutoGenerateColumns="True" ItemsSource="{Binding Path=OptionPricingCalculationResults}" Style="{StaticResource MetroDataGrid}" CanUserAddRows="False" IsReadOnly="True" BorderBrush="Black" Background="WhiteSmoke" ColumnWidth="Auto" CanUserDeleteRows="False" FontSize="14" />
 
                 </Grid>
 

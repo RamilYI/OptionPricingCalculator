@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:OptionPricingCalculator.Views.Windows"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
-        Title="Настройки" Height="450" Width="800">
+        Title="Настройки" Height="460" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -28,13 +28,15 @@
 
                     <Label Content="Временная сетка:" Style="{StaticResource LabelOptionPropertyStyle}"/>
 
-                    <!--<Label Content="Алгоритм решения:" Style="{StaticResource LabelOptionPropertyStyle}"/>-->
+                    <Label Content="Параллельные вычисления:" Style="{StaticResource LabelOptionPropertyStyle}"/>
 
                 </StackPanel>
                 <StackPanel Grid.Column="1">
-                    <mah:NumericUpDown Value="{Binding NumOfSimulations}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" StringFormat="D" />
+                    <mah:NumericUpDown Value="{Binding NumOfSimulations, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" />
 
-                    <mah:NumericUpDown Value="{Binding GridOfTime}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" StringFormat="D" />
+                    <mah:NumericUpDown Value="{Binding GridOfTime, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" />
+
+                    <CheckBox IsChecked="{Binding IsParallel, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource CheckBoxOptionPropertyValue}" Margin="17"/>
 
                     <!--<ComboBox ItemsSource="{Binding MonteCarloAlgorithms}" SelectedItem="{Binding SelectedAlgorithm}"  Style="{StaticResource ComboBoxOptionPropertyPrice}" />-->
                 </StackPanel>
@@ -42,11 +44,11 @@
         </GroupBox>
         <GroupBox Grid.Row="1" Grid.ColumnSpan="2" Header="Выводимые значения" FontSize="16">
             <StackPanel>
-                <CheckBox Content="Delta" IsEnabled="{Binding IsDeltaEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
-                <CheckBox Content="Gamma" IsEnabled="{Binding IsGammaEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
-                <CheckBox Content="Vega" IsEnabled="{Binding IsVegaEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
-                <CheckBox Content="Rho" IsEnabled="{Binding IsRhoEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
-                <CheckBox Content="Theta" IsEnabled="{Binding IsThetaEnabled}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Delta" IsChecked="{Binding IsDeltaEnabled, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Gamma" IsChecked="{Binding IsGammaEnabled, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Vega" IsChecked="{Binding IsVegaEnabled, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Rho" IsChecked="{Binding IsRhoEnabled, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
+                <CheckBox Content="Theta" IsChecked="{Binding IsThetaEnabled, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource CheckBoxOptionPropertyValue}"/>
             </StackPanel>
         </GroupBox>
 <!--<Button Grid.Row="2" Margin="3" Command="{Binding ExitSettings}" Grid.Column="1" Content="Закрыть настройки" FontSize="16"/>-->

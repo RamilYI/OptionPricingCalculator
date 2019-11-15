@@ -2,27 +2,30 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Xml.Serialization;
 using DynamicData;
+using Microsoft.Win32;
 using OptionPricingCalculator.Computer;
 using OptionPricingCalculator.Models;
 using OptionPricingCalculator.ViewModels.Interfaces;
 using OptionPricingCalculator.Views.Windows;
 using OxyPlot;
 using OxyPlot.Series;
-using PropertyChanged;
 using ReactiveUI;
 
 namespace OptionPricingCalculator.ViewModels
 {
-    [DoNotNotify]
     public class MainViewModel : ReactiveObject, IMainViewModel
     {
+        private OptionModel optionModel;
+
         private ReadOnlyObservableCollection<OptionParameters> _optionPricingCalculationResults;
 
         public ReadOnlyObservableCollection<OptionParameters> OptionPricingCalculationResults =>
@@ -30,7 +33,8 @@ namespace OptionPricingCalculator.ViewModels
 
         private PlotModel _priceChartSeries;
 
-        public PlotModel PriceChartSeries {
+        public PlotModel PriceChartSeries
+        {
             get { return this._priceChartSeries; }
             set { this.RaiseAndSetIfChanged(ref this._priceChartSeries, value); }
         }
@@ -63,9 +67,9 @@ namespace OptionPricingCalculator.ViewModels
 
         public ICommand CreateProjectCommand => this._createProjectCommand;
 
-        private readonly ReactiveCommand<Unit, Unit> _calculate;
+        private readonly ReactiveCommand<Unit, Unit> _calculateCommand;
 
-        public ICommand Calculate => this._calculate;
+        public ICommand CalculateCommand => this._calculateCommand;
 
         private string _optionType;
 
@@ -142,116 +146,196 @@ namespace OptionPricingCalculator.ViewModels
         public List<string> OptionValues { get; } = new List<string>
         {
             "put",
-            "call"
+            "call",
         };
 
-        public MainViewModel()
+        private string _calculationDuration = string.Empty;
+
+        public string CalculationDuration
         {
-            this._optionType = OptionValues.FirstOrDefault();
+            get => this._calculationDuration;
+            set => this.RaiseAndSetIfChanged(ref this._calculationDuration, value);
+        }
+
+        private string _status = string.Empty;
+
+        public string Status
+        {
+            get => this._status;
+            set => this.RaiseAndSetIfChanged(ref this._status, value);
+        }
+
+        public MainViewModel(OptionModel model)
+        {
+            this.optionModel = model;
+
+            this.WhenAnyValue(x => x.OptionType).Subscribe(x => this.optionModel.OptionType = x);
+            this.WhenAnyValue(x => x.InitialStock).Subscribe(x => this.optionModel.InitialStock = x);
+            this.WhenAnyValue(x => x.Volatility).Subscribe(x => this.optionModel.Volatility = x);
+            this.WhenAnyValue(x => x.StrikeValue).Subscribe(x => this.optionModel.StrikeValue = x);
+            this.WhenAnyValue(x => x.MaturityTime).Subscribe(x => this.optionModel.MaturityTime = x);
+            this.WhenAnyValue(x => x.RiskFreeInterestRate).Subscribe(x => this.optionModel.RiskFreeInterestRate = x);
+            this.WhenAnyValue(x => x.DividendYield).Subscribe(x => this.optionModel.DividendYield = x);
+            this.WhenAnyValue(x => x.NumberOfAssets).Subscribe(x => this.optionModel.NumberOfAssets = x);
+            this.WhenAnyValue(x => x.CalculationDuration).Subscribe(x => this.optionModel.CalculationDuration = x);
+            this.WhenAnyValue(x => x.Status).Subscribe(x => this.optionModel.Status = x);
+
+            this.OptionType = this.OptionValues.FirstOrDefault();
             var sourceResults = new SourceList<OptionParameters>();
-            //Random rand = new Random();
 
-            //for (var i = 0; i < 10000; i++)
-            //{
-            //    var id = i + 1;
-            //    var popularity = rand.Next(10000);
-            //    sourceResults.Add(new OptionParameters
-            //    {
-            //        Episodes = rand.Next(10000),
-            //        Genre = rand.Next(10000).ToString(),
-            //        Id = id,
-            //        Popularity = popularity,
-            //        Score = rand.NextDouble(),
-            //        TitleName = rand.Next(10000).ToString(),
-            //    });
-            //}
-            var testModel = new PlotModel
-            {
-                Title = "Test Model",
-            };
-            var test = new LineSeries();
-            this._calculate = ReactiveCommand.CreateFromTask(() => Task.Factory.StartNew(() =>
-            {
-                testModel.ResetAllAxes();
-                sourceResults.Clear();
-                //var gridForTime = 50;
-                LeastSquareMC result;
-                for (var i = 1000; i <= EnvironmentSettings.Instance.SimulationNumbers; i += 1000)
-                {
-                    result = new LeastSquareMC(this._initialStock, this._strikeValue, this._maturityTime, EnvironmentSettings.Instance.GridForTime, this._volatility,
-                        this._riskFreeInterestRate, i, this._optionType);
-                    
-                    var optionParameter = new OptionParameters {Paths = i, Price = result.ReturnPrice()};
-
-                    if (EnvironmentSettings.Instance.IsDeltaEnabled)
-                    {
-                        optionParameter.Delta = 0.0;
-                    }
-
-                    if (EnvironmentSettings.Instance.IsGammaEnabled)
-                    {
-                        optionParameter.Gamma = 0.0;
-                    }
-
-                    if (EnvironmentSettings.Instance.IsRhoEnabled)
-                    {
-                        optionParameter.Rho = 0.0;
-                    }
-
-                    if (EnvironmentSettings.Instance.IsThetaEnabled)
-                    {
-                        optionParameter.Theta = 0.0;
-                    }
-
-                    if (EnvironmentSettings.Instance.IsVegaEnabled)
-                    {
-                        optionParameter.Vega = 0.0;
-                    }
-
-                    sourceResults.Add(optionParameter);
-                    test.Points.Add(new DataPoint(i, result.ReturnPrice()));
-                    this.PriceChartSeries.InvalidatePlot(true);
-                }
-            }));
-            testModel.Series.Add(test);
-            this._priceChartSeries = testModel;
+            this._priceChartSeries = new PlotModel();
+            this.PriceChartSeries.Series.Add(new LineSeries());
+            this._calculateCommand = ReactiveCommand.CreateFromTask(() => Task.Run(() => this.Calculate(sourceResults)));
             var cancellationResults = sourceResults.Connect().ObserveOnDispatcher().Bind(out this._optionPricingCalculationResults)
                 .DisposeMany().Subscribe();
-
-            //var test = new LineSeries();
-            //for (var i = 0; i < 500; i++)
-            //{
-            //    test.Points.Add(new DataPoint(i + 1, Math.Pow(i + 1, 2)));
-            //}
 
             this._exitCommand = ReactiveCommand.Create(() => Application.Current.Shutdown());
 
             // TODO потом написать.
             //// написать команду, открывающую справку.
-            this._openHelpCommand = ReactiveCommand.Create(() =>
-            {
-                var helpView = new HelpView();
-                helpView.Show();
-            });
+            this._openHelpCommand = ReactiveCommand.Create(() => this.OpenHelp());
 
             //// написать команду, открывающую настройки.
-            this._openSettingsCommand = ReactiveCommand.Create(() =>
-            {
-                var settingsView = new SettingsView();
-                settingsView.ShowDialog();
-            });
+            this._openSettingsCommand = ReactiveCommand.Create(() => this.OpenSettings());
 
-            //// написать команду, генерирующую отчёт.
-            //this._generateReportCommand = ReactiveCommand.Create(());
+            // написать команду, генерирующую отчёт.
+            this._generateReportCommand = ReactiveCommand.CreateFromTask(() => this.GenerateReportAsync());
 
-            //// написать команду, сохраняющую проект.
-            //this._saveProjectCommand = ReactiveCommand.Create(());
+            // написать команду, сохраняющую проект.
+            this._saveProjectCommand = ReactiveCommand.CreateFromTask(() => this.SaveProject());
 
             //// написать команду, открывающую проект.
-            //this._openProjectCommand = ReactiveCommand.Create(());
+            this._openProjectCommand = ReactiveCommand.CreateFromTask(() => this.OpenProject());
 
-            //// написать команду, создающую новый проект.
-            //this._createProjectCommand = ReactiveCommand.Create(());
+            // написать команду, создающую новый проект.
+            this._createProjectCommand = ReactiveCommand.Create(() =>
+            {
+                this.optionModel = new OptionModel();
+                this.InitializeProperties();
+            });
+        }
+
+        private Task GenerateReportAsync()
+        {
+            return Task.Run(() =>
+            {
+                var saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "Csv file (*.csv)|*.csv";
+                saveFileDialog.ShowDialog();
+
+                using (var sw = new StreamWriter(saveFileDialog.FileName))
+                {
+                    sw.WriteLine($"{nameof(OptionParameters.Paths)}; {nameof(OptionParameters.Price)};" +
+                                 $"{nameof(OptionParameters.Delta)}; {nameof(OptionParameters.Gamma)};" +
+                                 $"{nameof(OptionParameters.Theta)}; {nameof(OptionParameters.Vega)};" +
+                                 $"{nameof(OptionParameters.Rho)}");
+                    foreach (var optionPricingCalculationResult in OptionPricingCalculationResults)
+                    {
+                        sw.WriteLine($"{optionPricingCalculationResult.Paths}; {optionPricingCalculationResult.Price}; " +
+                                     $"{optionPricingCalculationResult.Delta}; {optionPricingCalculationResult.Gamma};" +
+                                     $"{optionPricingCalculationResult.Theta}; ${optionPricingCalculationResult.Vega};" +
+                                     $"{optionPricingCalculationResult.Rho}");
+                    }
+                }
+            });
+        }
+
+        private void OpenSettings()
+        {
+            var settingsViewModel = new SettingsViewModel();
+            var settingsView = new SettingsView {DataContext = settingsViewModel};
+            settingsView.ShowDialog();
+        }
+
+        private void OpenHelp()
+        {
+            var aboutApplication = File.ReadAllText(@"..\..\ThereWillBeInformationAboutApp.txt");
+            var aboutFeatures = File.ReadAllText(@"..\..\ThereWillBeInformationAboutFeatures.txt");
+            var helpView = new HelpView(aboutApplication, aboutFeatures);
+            helpView.Show();
+        }
+
+        private void Calculate(SourceList<OptionParameters> sourceResults)
+        {
+            this.Status = "Расчёт идёт";
+            this.CalculationDuration = string.Empty;
+            var test = new LineSeries();
+            this._priceChartSeries.Series.Clear();
+            this._priceChartSeries.Series.Add(test);
+            sourceResults.Clear();
+            LeastSquareMC result;
+            var i1Value = EnvironmentSettings.Instance.SimulationNumbers / 100;
+            Stopwatch sw1 = new Stopwatch();
+            sw1.Start();
+            for (var i = i1Value; i <= EnvironmentSettings.Instance.SimulationNumbers; i += i1Value)
+            {
+                result = new LeastSquareMC(this._initialStock, this._strikeValue, this._maturityTime,
+                    EnvironmentSettings.Instance.GridForTime, this._volatility,
+                    this._riskFreeInterestRate, i, this._optionType, EnvironmentSettings.Instance.IsParallel);
+
+                var optionParameter = new OptionParameters
+                {
+                    Paths = i,
+                    Price = result.ReturnPrice(),
+                    Delta = EnvironmentSettings.Instance.IsDeltaEnabled ? result.Delta() : 0,
+                    Gamma = EnvironmentSettings.Instance.IsGammaEnabled ? result.Gamma() : 0,
+                    Theta = EnvironmentSettings.Instance.IsThetaEnabled ? result.Theta() : 0,
+                    Rho = EnvironmentSettings.Instance.IsRhoEnabled ? result.Rho() : 0,
+                    Vega = EnvironmentSettings.Instance.IsRhoEnabled ? result.Vega() : 0,
+                };
+                sourceResults.Add(optionParameter);
+                test.Points.Add(new DataPoint(i, result.ReturnPrice()));
+                this._priceChartSeries.InvalidatePlot(true);
+            }
+
+            sw1.Stop();
+            this.Status = "Расчёт окончен";
+            this.CalculationDuration = (sw1.ElapsedMilliseconds / 1000).ToString() + " секунд";
+        }
+
+        private Task OpenProject()
+        {
+            return Task.Run(() =>
+            {
+                var openFileDialog = new OpenFileDialog();
+                string path = string.Empty;
+                openFileDialog.Filter = "Xml file (*.xml)|*.xml";
+                openFileDialog.ShowDialog();
+                var formatter = new XmlSerializer(typeof(OptionModel));
+                using (var fs = new FileStream(openFileDialog.FileName, FileMode.OpenOrCreate))
+                {
+                    this.optionModel = (OptionModel)formatter.Deserialize(fs);
+                    this.InitializeProperties();
+                }
+            });
+        }
+
+        private void InitializeProperties()
+        {
+            this.OptionType = this.optionModel.OptionType;
+            this.InitialStock = this.optionModel.InitialStock;
+            this.Volatility = this.optionModel.Volatility;
+            this.StrikeValue = this.optionModel.StrikeValue;
+            this.MaturityTime = this.optionModel.MaturityTime;
+            this.RiskFreeInterestRate = this.optionModel.RiskFreeInterestRate;
+            this.DividendYield = this.optionModel.DividendYield;
+            this.NumberOfAssets = this.optionModel.NumberOfAssets;
+        }
+
+        private Task SaveProject()
+        {
+            return Task.Run(() =>
+            {
+                var saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "Xml file (*.xml)|*.xml";
+                saveFileDialog.ShowDialog();
+                var formatter = new XmlSerializer(typeof(OptionModel));
+
+                using (FileStream fs = new FileStream(saveFileDialog.FileName, FileMode.OpenOrCreate))
+                {
+                    formatter.Serialize(fs, this.optionModel);
+                }
+            });
         }
     }
 }

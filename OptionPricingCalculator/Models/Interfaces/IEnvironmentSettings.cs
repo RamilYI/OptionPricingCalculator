@@ -2,8 +2,6 @@
 {
     public interface IEnvironmentSettings
     {
-        string[] MonteCarloAlgorithms { get; set; }
-
         int SimulationNumbers { get; set; }
 
         int GridForTime { get; set; }
@@ -17,5 +15,7 @@
         bool IsRhoEnabled { get; set; }
 
         bool IsThetaEnabled { get; set; }
+
+        bool IsParallel { get; set; }
     }
 }

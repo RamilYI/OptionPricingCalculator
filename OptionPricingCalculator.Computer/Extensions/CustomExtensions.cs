@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OptionPricingCalculator.Computer.Extensions
 {
-    public static class ArrayExtensions
+    public static class CustomExtensions
     {
         public static T[] GetRow<T>(this T[,] array, int row)
         {

@@ -25,9 +25,11 @@ namespace OptionPricingCalculator.Models
 
         public bool IsThetaEnabled { get; set; }
 
+        public bool IsParallel { get; set; }
+
         private static readonly Lazy<EnvironmentSettings> lazy = new Lazy<EnvironmentSettings>(() => new EnvironmentSettings()
         {
-            MonteCarloAlgorithms = new [] {"Метод наименьших квадратов"},
+            MonteCarloAlgorithms = new[] { "Метод наименьших квадратов" },
             SimulationNumbers = 200000,
             GridForTime = 50,
             IsDeltaEnabled = true,
@@ -35,9 +37,10 @@ namespace OptionPricingCalculator.Models
             IsRhoEnabled = true,
             IsVegaEnabled = true,
             IsThetaEnabled = true,
+            IsParallel = true,
         });
 
-        public static EnvironmentSettings Instance { get { return lazy.Value; } }
+        public static EnvironmentSettings Instance => lazy.Value;
 
         private EnvironmentSettings()
         {

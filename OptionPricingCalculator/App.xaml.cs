@@ -1,6 +1,6 @@
 ﻿using System.Windows;
+using OptionPricingCalculator.Models;
 using OptionPricingCalculator.ViewModels;
-using OptionPricingCalculator.Views;
 using MainView = OptionPricingCalculator.Views.Windows.MainView;
 
 namespace OptionPricingCalculator
@@ -14,7 +14,7 @@ namespace OptionPricingCalculator
 
         private void OnApplicationStartup(object sender, StartupEventArgs e)
         {
-            var mainViewModel = new MainViewModel();
+            var mainViewModel = new MainViewModel(new OptionModel());
             var window = new MainView { DataContext = mainViewModel };
             window.Closed += delegate { this.Shutdown(); };
             window.Show();

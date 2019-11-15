@@ -9,11 +9,13 @@
         Title="Справка" Height="450" Width="800">
     <Grid>
         <TabControl Style="{StaticResource MetroTabControl}">
-            <TabItem Header="Справка">
-
+            <TabItem Header="Информация о программе">
+                <TextBlock x:Name="aboutApplication" TextWrapping="Wrap" FontSize="20" Foreground="Black"
+/>
             </TabItem>
-            <TabItem Header="and so on...">
-
+            <TabItem Header="Об особенностях использования программы">
+                <TextBlock x:Name="applicationFeatures" TextWrapping="Wrap" FontSize="20" Foreground="Black"
+                           />
             </TabItem>
         </TabControl>
     </Grid>

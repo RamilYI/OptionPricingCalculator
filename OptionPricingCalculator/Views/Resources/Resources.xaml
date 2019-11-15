@@ -26,9 +26,10 @@
            BasedOn="{StaticResource CommonOptionPropertyStyle}" TargetType="{x:Type ComboBox}"/>
     
     <Style x:Key="TextBoxOptionPropertyStyle"
-    BasedOn="{StaticResource CommonOptionPropertyStyle}" TargetType="{x:Type TextBox}">
+    BasedOn="{StaticResource CommonOptionPropertyStyle}" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="Black"/>
         <Setter Property="FontSize" Value="16"/>
+        <Setter Property="Margin" Value="7"/>
     </Style>
 
     <Style x:Key="CheckBoxOptionPropertyValue"
