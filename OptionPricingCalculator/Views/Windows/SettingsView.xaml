@@ -45,9 +45,9 @@
 
                 </StackPanel>
                 <StackPanel Grid.Column="1">
-                    <mah:NumericUpDown Value="{Binding NumOfSimulations, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" />
+                        <mah:NumericUpDown Value="{Binding SimulationNumbers, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" />
 
-                    <mah:NumericUpDown Value="{Binding GridOfTime, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" />
+                        <mah:NumericUpDown Value="{Binding GridForTime, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumericUpDownOptionPropertyStyle}" />
 
                     <CheckBox IsChecked="{Binding IsParallel, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource CheckBoxOptionPropertyValue}" Margin="17"/>
 

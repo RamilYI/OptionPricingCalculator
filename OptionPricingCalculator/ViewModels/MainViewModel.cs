@@ -273,9 +273,19 @@ namespace OptionPricingCalculator.ViewModels
             this.RaisePropertyChanged(nameof(this.IsCancel));
             this.Status = "Расчёт идёт";
             this.CalculationDuration = string.Empty;
-            var test = new LineSeries();
+            var priceSeries = new LineSeries();
+            //var deltaSeries = new LineSeries();
+            //var gammaSeries = new LineSeries();
+            //var thetaSeries = new LineSeries();
+            //var rhoSeries = new LineSeries();
+            //var vegaSeries = new LineSeries();
             this._priceChartSeries.Series.Clear();
-            this._priceChartSeries.Series.Add(test);
+            this._priceChartSeries.Series.Add(priceSeries);
+            //this._priceChartSeries.Series.Add(deltaSeries);
+            //this._priceChartSeries.Series.Add(gammaSeries);
+            //this._priceChartSeries.Series.Add(thetaSeries);
+            //this._priceChartSeries.Series.Add(rhoSeries);
+            //this._priceChartSeries.Series.Add(vegaSeries);
             sourceResults.Clear();
             LeastSquareMethod result;
             var i1Value = EnvironmentSettings.Instance.SimulationNumbers / EnvironmentSettings.Instance.NumberOfPath;
@@ -302,7 +312,12 @@ namespace OptionPricingCalculator.ViewModels
                     Vega = EnvironmentSettings.Instance.IsRhoEnabled ? result.Vega() : 0,
                 };
                 sourceResults.Add(optionParameter);
-                test.Points.Add(new DataPoint(i, result.ReturnPrice()));
+                priceSeries.Points.Add(new DataPoint(i, optionParameter.Price));
+                //deltaSeries.Points.Add(new DataPoint(i, optionParameter.Delta));
+                //gammaSeries.Points.Add(new DataPoint(i, optionParameter.Gamma));
+                //thetaSeries.Points.Add(new DataPoint(i, optionParameter.Theta));
+                //rhoSeries.Points.Add(new DataPoint(i, optionParameter.Rho));
+                //vegaSeries.Points.Add(new DataPoint(i, optionParameter.Vega));
                 this._priceChartSeries.InvalidatePlot(true);
             }
 
