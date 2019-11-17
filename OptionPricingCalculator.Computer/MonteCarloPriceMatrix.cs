@@ -5,14 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.Distributions;
 using MathNet.Numerics.Random;
+using OptionPricingCalculator.Common.Models;
+using OptionPricingCalculator.Common.Settings;
 
 namespace OptionPricingCalculator.Computer
 {
     public static class MonteCarloPriceMatrix
     {
-        public static List<Tuple<double, double[]>> MonteCarloCreator(double gridForTime, double volatility, double riskFreeOptionPrice, int simulations, double T, double initialStock, bool isParallel = true)
+        public static List<Tuple<double, double[]>> MonteCarloCreator(double volatility, double riskFreeOptionPrice, int simulations, double T, double initialStock)
         {
-            var timeUnit = T / gridForTime;
+            var timeUnit = T / EnvironmentSettings.Instance.GridForTime;
             var random = new MersenneTwister();
             var mcPriceMatrix = new List<Tuple<double, double[]>>
             {
@@ -20,29 +22,30 @@ namespace OptionPricingCalculator.Computer
             };
 
 
-            GenerateMC_PriceMatrixValues(gridForTime, volatility, riskFreeOptionPrice, simulations, random, timeUnit, mcPriceMatrix, isParallel);
+            GenerateMC_PriceMatrixValues(volatility, riskFreeOptionPrice, simulations, random, timeUnit, mcPriceMatrix);
 
             return mcPriceMatrix;
         }
 
-        private static void GenerateMC_PriceMatrixValues(double gridForTime, double volatility, double riskFreeOptionPrice,
-            int simulations, MersenneTwister random, double timeUnit, List<Tuple<double, double[]>> MC_PriceMatrix, bool isParallel = true)
+        private static void GenerateMC_PriceMatrixValues(double volatility, double riskFreeOptionPrice,
+            int simulations, MersenneTwister random, double timeUnit, List<Tuple<double, double[]>> MC_PriceMatrix)
         {
-            for (var i = 1; i < gridForTime + 1; i++)
+            for (var i = 1; i < EnvironmentSettings.Instance.GridForTime + 1; i++)
             {
-                var Z = Normal.WithMeanStdDev(0.0, 1.0, random).Samples().Take(simulations).ToArray();
-                var S = Simulation_MC(simulations, riskFreeOptionPrice, timeUnit, volatility, Z, MC_PriceMatrix[i - 1], isParallel);
+                var Z = Normal.WithMeanStdDev(0.0, 1.0, random).Samples().Take(simulations / 2).ToArray();
+                Z = Z.Concat(Z.Select(x => -x).ToArray()).ToArray();
+                var S = Simulation_MC(simulations, riskFreeOptionPrice, timeUnit, volatility, Z, MC_PriceMatrix[i - 1]);
 
                 MC_PriceMatrix.Add(new Tuple<double, double[]>(i * timeUnit, S));
             }
         }
 
         private static double[] Simulation_MC(int simulations, double riskFreeOptionPrice, double timeUnit,
-            double volatility, double[] Z, Tuple<double, double[]> mcMatrix, bool isParallel = true)
+            double volatility, double[] Z, Tuple<double, double[]> mcMatrix)
         {
             double[] S = new double[simulations];
 
-            if (isParallel)
+            if (EnvironmentSettings.Instance.IsParallel)
             {
                 Parallel.For(0, simulations,
                     (index) =>

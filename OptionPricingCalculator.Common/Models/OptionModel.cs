@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Xml.Serialization;
 
-namespace OptionPricingCalculator.Models
+namespace OptionPricingCalculator.Common.Models
 {
     [Serializable]
     public class OptionModel

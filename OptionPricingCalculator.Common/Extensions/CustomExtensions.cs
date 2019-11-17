@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace OptionPricingCalculator.Computer.Extensions
+namespace OptionPricingCalculator.Common.Extensions
 {
     public static class CustomExtensions
     {

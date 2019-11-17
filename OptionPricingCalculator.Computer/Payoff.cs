@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace OptionPricingCalculator.Computer
 {
-    public static class MonteCarloPayoff
+    public static class Payoff
     {
-        public static double[][] MonteCarloPayOff(List<Tuple<double, double[]>> mcPriceMatrix, double strike, string optionType, bool isParallel = true)
+        public static double[][] PayOff(List<Tuple<double, double[]>> mcPriceMatrix, double strike, string optionType, bool isParallel = true)
         {
             return GenerateMcPayOffValues(mcPriceMatrix, strike, optionType, isParallel);
         }

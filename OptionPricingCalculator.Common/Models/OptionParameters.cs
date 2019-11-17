@@ -1,4 +1,4 @@
-﻿namespace OptionPricingCalculator.Models
+﻿namespace OptionPricingCalculator.Common.Models
 {
     public class OptionParameters
     {

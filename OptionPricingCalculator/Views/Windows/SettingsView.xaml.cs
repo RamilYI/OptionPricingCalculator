@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using MahApps.Metro.Controls;
-using OptionPricingCalculator.ViewModels.Interfaces;
+using OptionPricingCalculator.Common.Settings.Interfaces;
 using ReactiveUI;
 
 namespace OptionPricingCalculator.Views.Windows

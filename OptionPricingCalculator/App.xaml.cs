@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using OptionPricingCalculator.Models;
+using OptionPricingCalculator.Common.Models;
 using OptionPricingCalculator.ViewModels;
 using MainView = OptionPricingCalculator.Views.Windows.MainView;
 

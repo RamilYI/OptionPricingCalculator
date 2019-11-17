@@ -6,14 +6,17 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using Dasync.Collections;
 using DynamicData;
 using Microsoft.Win32;
+using OptionPricingCalculator.Common.Models;
+using OptionPricingCalculator.Common.Settings;
 using OptionPricingCalculator.Computer;
-using OptionPricingCalculator.Models;
 using OptionPricingCalculator.ViewModels.Interfaces;
 using OptionPricingCalculator.Views.Windows;
 using OxyPlot;
@@ -70,6 +73,10 @@ namespace OptionPricingCalculator.ViewModels
         private readonly ReactiveCommand<Unit, Unit> _calculateCommand;
 
         public ICommand CalculateCommand => this._calculateCommand;
+
+        private readonly ReactiveCommand<Unit, Unit> _cancelCommand;
+
+        public ICommand CancelCommand => this._cancelCommand;
 
         private string _optionType;
 
@@ -165,10 +172,17 @@ namespace OptionPricingCalculator.ViewModels
             set => this.RaiseAndSetIfChanged(ref this._status, value);
         }
 
+        private bool _isCancel = true;
+
+        public bool IsCancel
+        {
+            get => this._isCancel;
+            set => this.RaiseAndSetIfChanged(ref this._isCancel, value);
+        }
+
         public MainViewModel(OptionModel model)
         {
             this.optionModel = model;
-
             this.WhenAnyValue(x => x.OptionType).Subscribe(x => this.optionModel.OptionType = x);
             this.WhenAnyValue(x => x.InitialStock).Subscribe(x => this.optionModel.InitialStock = x);
             this.WhenAnyValue(x => x.Volatility).Subscribe(x => this.optionModel.Volatility = x);
@@ -179,7 +193,6 @@ namespace OptionPricingCalculator.ViewModels
             this.WhenAnyValue(x => x.NumberOfAssets).Subscribe(x => this.optionModel.NumberOfAssets = x);
             this.WhenAnyValue(x => x.CalculationDuration).Subscribe(x => this.optionModel.CalculationDuration = x);
             this.WhenAnyValue(x => x.Status).Subscribe(x => this.optionModel.Status = x);
-
             this.OptionType = this.OptionValues.FirstOrDefault();
             var sourceResults = new SourceList<OptionParameters>();
 
@@ -212,6 +225,12 @@ namespace OptionPricingCalculator.ViewModels
             {
                 this.optionModel = new OptionModel();
                 this.InitializeProperties();
+            });
+
+            this._cancelCommand = ReactiveCommand.Create(() =>
+            {
+                this._isCancel = false;
+                this.RaisePropertyChanged(nameof(this.IsCancel));
             });
         }
 
@@ -255,23 +274,74 @@ namespace OptionPricingCalculator.ViewModels
             helpView.Show();
         }
 
+        //private void CalculateAsync(SourceList<OptionParameters> sourceResults)
+        //{
+        //    this._isCancel = true;
+        //    this.RaisePropertyChanged(nameof(this.IsCancel));
+        //    this.Status = "Расчёт идёт";
+        //    this.CalculationDuration = string.Empty;
+        //    var test = new LineSeries();
+        //    this._priceChartSeries.Series.Clear();
+        //    this._priceChartSeries.Series.Add(test);
+        //    sourceResults.Clear();
+        //    var result = new LeastSquareMethod(this._initialStock, this._strikeValue, this._maturityTime,
+        //        EnvironmentSettings.Instance.GridForTime, this._volatility,
+        //        this._riskFreeInterestRate, EnvironmentSettings.Instance.SimulationNumbers, this._optionType, EnvironmentSettings.Instance.IsParallel);
+        //    var sw1 = new Stopwatch();
+        //    sw1.Start();
+        //    var gridOfTime = 1;
+        //    result.GreekOddsInit();
+        //    result.RegressionMCAsync().ForEachAsync(resultOfT =>
+        //    {
+        //        if (!this.IsCancel)
+        //        {
+        //            return;
+        //        }
+
+        //        var optionParameter = new OptionParameters
+        //        {
+        //            Paths = gridOfTime,
+        //            Price = resultOfT,
+        //            Delta = EnvironmentSettings.Instance.IsDeltaEnabled ? result.Delta(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
+        //            Gamma = EnvironmentSettings.Instance.IsGammaEnabled ? result.Gamma(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
+        //            Theta = EnvironmentSettings.Instance.IsThetaEnabled ? result.Theta(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
+        //            Rho = EnvironmentSettings.Instance.IsRhoEnabled ? result.Rho(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
+        //            Vega = EnvironmentSettings.Instance.IsRhoEnabled ? result.Vega(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
+        //        };
+        //        sourceResults.Add(optionParameter);
+        //        test.Points.Add(new DataPoint(gridOfTime, resultOfT));
+        //        this._priceChartSeries.InvalidatePlot(true);
+        //        gridOfTime++;
+        //    });
+
+        //    sw1.Stop();
+        //    this.Status = "Расчёт окончен";
+        //    this.CalculationDuration = (sw1.ElapsedMilliseconds / 1000).ToString() + " секунд";
+        //}
+
         private void Calculate(SourceList<OptionParameters> sourceResults)
         {
+            this._isCancel = true;
+            this.RaisePropertyChanged(nameof(this.IsCancel));
             this.Status = "Расчёт идёт";
             this.CalculationDuration = string.Empty;
             var test = new LineSeries();
             this._priceChartSeries.Series.Clear();
             this._priceChartSeries.Series.Add(test);
             sourceResults.Clear();
-            LeastSquareMC result;
-            var i1Value = EnvironmentSettings.Instance.SimulationNumbers / 100;
+            LeastSquareMethod result;
+            var i1Value = EnvironmentSettings.Instance.SimulationNumbers / EnvironmentSettings.Instance.NumberOfPath;
             Stopwatch sw1 = new Stopwatch();
             sw1.Start();
             for (var i = i1Value; i <= EnvironmentSettings.Instance.SimulationNumbers; i += i1Value)
             {
-                result = new LeastSquareMC(this._initialStock, this._strikeValue, this._maturityTime,
-                    EnvironmentSettings.Instance.GridForTime, this._volatility,
-                    this._riskFreeInterestRate, i, this._optionType, EnvironmentSettings.Instance.IsParallel);
+                if (!this.IsCancel)
+                {
+                    break;
+                }
+
+                result = new LeastSquareMethod(this._initialStock, this._strikeValue, this._maturityTime, this._volatility,
+                    this._riskFreeInterestRate, i, this._optionType);
 
                 var optionParameter = new OptionParameters
                 {

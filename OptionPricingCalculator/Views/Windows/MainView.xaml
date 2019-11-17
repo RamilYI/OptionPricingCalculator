@@ -8,6 +8,7 @@
         xmlns:oxy="using:OxyPlot.Wpf"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:wpf="http://oxyplot.org/wpf"
+        xmlns:wpfAutoGrid="clr-namespace:WpfAutoGrid;assembly=WpfAutoGrid"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -21,11 +22,11 @@
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d"
         Title="Option Pricing Calculator" Height="600" Width="1067">
-    <Grid>
-        <Grid.RowDefinitions>
+    <wpfAutoGrid:AutoGrid Columns="" Rows="25,2*">
+        <!--Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="2*"/>
-        </Grid.RowDefinitions>
+        </Grid.RowDefinitions>-->
         <Grid Grid.Row="0">
             <Menu>
                 <MenuItem Header="Файл"  VerticalAlignment="Center">
@@ -42,11 +43,12 @@
                 <MenuItem Header="Справка"  VerticalAlignment="Center" Command="{Binding OpenHelpCommand}"/>
             </Menu>
         </Grid>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
+        <wpfAutoGrid:AutoGrid Grid.Row="1" Columns="1*,25, 2*">
+            <!--<Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
+            </Grid.ColumnDefinitions>-->
+            <ScrollViewer HorizontalScrollBarVisibility="Visible">
             <Grid Grid.Column="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -54,6 +56,7 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="40"/>
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
@@ -104,8 +107,9 @@
                 </GroupBox>
 
                 <Button Grid.Row="1" Grid.Column="0" Content="Рассчитать" Background="Gray" BorderBrush="Gray" Margin="5" Command="{Binding CalculateCommand}"/>
-                
-                <GroupBox Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Header="Результаты" FontSize="16" >
+                <Button Grid.Row="2" Grid.Column="0" Content="Отменить расчёт" Background="Gray" BorderBrush="Gray" Margin="5" Command="{Binding CancelCommand}"/>
+
+            <GroupBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Header="Результаты" FontSize="16" >
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -124,7 +128,10 @@
                     
                 </GroupBox>
             </Grid>
-            <Grid Grid.Column="1">
+                </ScrollViewer>
+            <GridSplitter Grid.Column="1" Width="1"
+                          HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+            <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="2*"/>
@@ -142,6 +149,6 @@
 
                 </Grid>
             </Grid>
-        </Grid>
-    </Grid>
+        </wpfAutoGrid:AutoGrid>
+    </wpfAutoGrid:AutoGrid>
 </mah:MetroWindow>
