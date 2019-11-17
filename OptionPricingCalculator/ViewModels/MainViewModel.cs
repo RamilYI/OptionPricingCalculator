@@ -194,7 +194,7 @@ namespace OptionPricingCalculator.ViewModels
             this.OptionType = this.OptionValues.FirstOrDefault();
             var sourceResults = new SourceList<OptionParameters>();
 
-            this._priceChartSeries = new PlotModel();
+            this._priceChartSeries = new PlotModel() {Title = "Ценообразование опционов" };
             this.PriceChartSeries.Series.Add(new LineSeries());
             this._calculateCommand = ReactiveCommand.CreateFromTask(() => Task.Run(() => this.Calculate(sourceResults)));
             var cancellationResults = sourceResults.Connect().ObserveOnDispatcher().Bind(out this._optionPricingCalculationResults)
@@ -273,7 +273,10 @@ namespace OptionPricingCalculator.ViewModels
             this.RaisePropertyChanged(nameof(this.IsCancel));
             this.Status = "Расчёт идёт";
             this.CalculationDuration = string.Empty;
-            var priceSeries = new LineSeries();
+            var priceSeries = new LineSeries()
+            {
+                Title = "Price"
+            };
             //var deltaSeries = new LineSeries();
             //var gammaSeries = new LineSeries();
             //var thetaSeries = new LineSeries();
