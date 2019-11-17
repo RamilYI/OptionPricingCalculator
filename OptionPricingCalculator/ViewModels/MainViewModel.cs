@@ -6,12 +6,10 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml.Serialization;
-using Dasync.Collections;
 using DynamicData;
 using Microsoft.Win32;
 using OptionPricingCalculator.Common.Models;
@@ -29,7 +27,7 @@ namespace OptionPricingCalculator.ViewModels
     {
         private OptionModel optionModel;
 
-        private ReadOnlyObservableCollection<OptionParameters> _optionPricingCalculationResults;
+        private readonly ReadOnlyObservableCollection<OptionParameters> _optionPricingCalculationResults;
 
         public ReadOnlyObservableCollection<OptionParameters> OptionPricingCalculationResults =>
             this._optionPricingCalculationResults;
@@ -204,23 +202,16 @@ namespace OptionPricingCalculator.ViewModels
 
             this._exitCommand = ReactiveCommand.Create(() => Application.Current.Shutdown());
 
-            // TODO потом написать.
-            //// написать команду, открывающую справку.
-            this._openHelpCommand = ReactiveCommand.Create(() => this.OpenHelp());
+            this._openHelpCommand = ReactiveCommand.Create(this.OpenHelp);
 
-            //// написать команду, открывающую настройки.
-            this._openSettingsCommand = ReactiveCommand.Create(() => this.OpenSettings());
+            this._openSettingsCommand = ReactiveCommand.Create(this.OpenSettings);
 
-            // написать команду, генерирующую отчёт.
-            this._generateReportCommand = ReactiveCommand.CreateFromTask(() => this.GenerateReportAsync());
+            this._generateReportCommand = ReactiveCommand.CreateFromTask(this.GenerateReportAsync);
 
-            // написать команду, сохраняющую проект.
-            this._saveProjectCommand = ReactiveCommand.CreateFromTask(() => this.SaveProject());
+            this._saveProjectCommand = ReactiveCommand.CreateFromTask(this.SaveProjectAsync);
 
-            //// написать команду, открывающую проект.
-            this._openProjectCommand = ReactiveCommand.CreateFromTask(() => this.OpenProject());
+            this._openProjectCommand = ReactiveCommand.CreateFromTask(this.OpenProjectAsync);
 
-            // написать команду, создающую новый проект.
             this._createProjectCommand = ReactiveCommand.Create(() =>
             {
                 this.optionModel = new OptionModel();
@@ -238,8 +229,10 @@ namespace OptionPricingCalculator.ViewModels
         {
             return Task.Run(() =>
             {
-                var saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "Csv file (*.csv)|*.csv";
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "Csv file (*.csv)|*.csv"
+                };
                 saveFileDialog.ShowDialog();
 
                 using (var sw = new StreamWriter(saveFileDialog.FileName))
@@ -274,51 +267,6 @@ namespace OptionPricingCalculator.ViewModels
             helpView.Show();
         }
 
-        //private void CalculateAsync(SourceList<OptionParameters> sourceResults)
-        //{
-        //    this._isCancel = true;
-        //    this.RaisePropertyChanged(nameof(this.IsCancel));
-        //    this.Status = "Расчёт идёт";
-        //    this.CalculationDuration = string.Empty;
-        //    var test = new LineSeries();
-        //    this._priceChartSeries.Series.Clear();
-        //    this._priceChartSeries.Series.Add(test);
-        //    sourceResults.Clear();
-        //    var result = new LeastSquareMethod(this._initialStock, this._strikeValue, this._maturityTime,
-        //        EnvironmentSettings.Instance.GridForTime, this._volatility,
-        //        this._riskFreeInterestRate, EnvironmentSettings.Instance.SimulationNumbers, this._optionType, EnvironmentSettings.Instance.IsParallel);
-        //    var sw1 = new Stopwatch();
-        //    sw1.Start();
-        //    var gridOfTime = 1;
-        //    result.GreekOddsInit();
-        //    result.RegressionMCAsync().ForEachAsync(resultOfT =>
-        //    {
-        //        if (!this.IsCancel)
-        //        {
-        //            return;
-        //        }
-
-        //        var optionParameter = new OptionParameters
-        //        {
-        //            Paths = gridOfTime,
-        //            Price = resultOfT,
-        //            Delta = EnvironmentSettings.Instance.IsDeltaEnabled ? result.Delta(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
-        //            Gamma = EnvironmentSettings.Instance.IsGammaEnabled ? result.Gamma(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
-        //            Theta = EnvironmentSettings.Instance.IsThetaEnabled ? result.Theta(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
-        //            Rho = EnvironmentSettings.Instance.IsRhoEnabled ? result.Rho(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
-        //            Vega = EnvironmentSettings.Instance.IsRhoEnabled ? result.Vega(EnvironmentSettings.Instance.GridForTime - gridOfTime) : 0,
-        //        };
-        //        sourceResults.Add(optionParameter);
-        //        test.Points.Add(new DataPoint(gridOfTime, resultOfT));
-        //        this._priceChartSeries.InvalidatePlot(true);
-        //        gridOfTime++;
-        //    });
-
-        //    sw1.Stop();
-        //    this.Status = "Расчёт окончен";
-        //    this.CalculationDuration = (sw1.ElapsedMilliseconds / 1000).ToString() + " секунд";
-        //}
-
         private void Calculate(SourceList<OptionParameters> sourceResults)
         {
             this._isCancel = true;
@@ -340,8 +288,8 @@ namespace OptionPricingCalculator.ViewModels
                     break;
                 }
 
-                result = new LeastSquareMethod(this._initialStock, this._strikeValue, this._maturityTime, this._volatility,
-                    this._riskFreeInterestRate, i, this._optionType);
+                result = new LeastSquareMethod(this.optionModel.InitialStock, this.optionModel.StrikeValue, this.optionModel.MaturityTime, this.optionModel.Volatility,
+                    this.optionModel.RiskFreeInterestRate, i, this.optionModel.OptionType);
 
                 var optionParameter = new OptionParameters
                 {
@@ -363,7 +311,7 @@ namespace OptionPricingCalculator.ViewModels
             this.CalculationDuration = (sw1.ElapsedMilliseconds / 1000).ToString() + " секунд";
         }
 
-        private Task OpenProject()
+        private Task OpenProjectAsync()
         {
             return Task.Run(() =>
             {
@@ -392,7 +340,7 @@ namespace OptionPricingCalculator.ViewModels
             this.NumberOfAssets = this.optionModel.NumberOfAssets;
         }
 
-        private Task SaveProject()
+        private Task SaveProjectAsync()
         {
             return Task.Run(() =>
             {

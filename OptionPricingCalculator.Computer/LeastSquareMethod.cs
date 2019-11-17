@@ -36,7 +36,7 @@ namespace OptionPricingCalculator.Computer
             this.Simulations = simulations;
 
             MC_PriceMatrix = EnvironmentSettings.Instance.StochasticProcessName == "Геометрическое броуновское движение" ? MonteCarloPriceMatrix.MonteCarloCreator(volatility, riskFreeOptionPrice, simulations, t, initialStock) : 
-                JumpDiffusionSimulation.JumpDiffusionCreator(volatility, riskFreeOptionPrice, simulations, t, initialStock, EnvironmentSettings.Instance.JumpLambda, EnvironmentSettings.Instance.JumpLambdaSize, EnvironmentSettings.Instance.JumpLambdaStd, EnvironmentSettings.Instance.TimeIntervals);
+                JumpDiffusionSimulation.JumpDiffusionCreator(volatility, riskFreeOptionPrice, simulations, t, initialStock);
 
             MC_PayOff = Payoff.PayOff(MC_PriceMatrix, strike, optionType);
             var timeUnit = t / EnvironmentSettings.Instance.GridForTime;
